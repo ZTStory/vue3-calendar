@@ -34,7 +34,7 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx"
-  ],
+, "src/calendar/lunar.js"  ],
   "exclude": [
     "node_modules"
   ]
