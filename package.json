@@ -2,6 +2,7 @@
     "name": "vue3-calendar",
     "version": "0.1.0",
     "private": true,
+    "homepage": "https://ZTStory.github.io/vue3-calendar",
     "scripts": {
         "serve": "vue-cli-service serve",
         "build": "vue-cli-service build",
@@ -12,7 +13,8 @@
         "core-js": "^3.6.5",
         "dayjs": "^1.10.6",
         "vue": "^3.0.0",
-        "vue-class-component": "^8.0.0-0"
+        "vue-class-component": "^8.0.0-0",
+        "vue-router": "4"
     },
     "devDependencies": {
         "@types/jest": "^24.0.19",

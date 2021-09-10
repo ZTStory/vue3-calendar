@@ -1,65 +1,79 @@
 <template>
-    <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
-    <!-- <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" /> -->
-    <Calendar v-model:selectedDate="selectedDate" :config="calendarConfig"></Calendar>
+    <router-view v-slot="{ Component, route }">
+        <transition :name="route.meta.transitionName">
+            <component :is="Component" />
+        </transition>
+    </router-view>
 </template>
 <script lang="ts">
-import { defineComponent, ref, watch } from "@vue/runtime-core";
-import Calendar from "./calendar/Calendar.vue";
-import { ZTCalendarConfig, ZTCalendarDay } from "./calendar/calendar.config";
-import DayjsUtils from "./calendar/dayjs.util";
-import dayjs from "dayjs";
+import { defineComponent } from "@vue/runtime-core";
+import { useRouter } from "vue-router";
+
 export default defineComponent({
-    components: {
-        Calendar,
-    },
     setup() {
-        let selectedDate = ref("");
-
-        const config = new ZTCalendarConfig();
-        // config.lunar = true;
-        config.onlyHoliday = true;
-        config.canUseDays = 300;
-
-        config.settingDayCb = (day: ZTCalendarDay) => {
-            const currentDay = dayjs(day.format);
-            if (currentDay.isSame(dayjs(selectedDate.value), "day")) {
-                day.selected = true;
+        const router = useRouter();
+        router.beforeEach((to) => {
+            const toDepth = to.params.mode;
+            if (toDepth === "push") {
+                to.meta.transitionName = "slide-left";
+            } else if (toDepth === "pop") {
+                to.meta.transitionName = "slide-right";
             }
-            if (DayjsUtils.isBetween(day.format, ["2021-09-19", "2021-09-21"], "day")) {
-                day.isRest = true;
-                day.bottomDesc = "可售";
-            }
-            if (DayjsUtils.isBetween(day.format, ["2021-10-01", "2021-10-07"], "day")) {
-                day.isRest = true;
-                day.bottomDesc = "￥100";
-            }
-            if (currentDay.isSame("2021-09-18", "day")) {
-                day.isWork = true;
-            }
-            if (currentDay.format("MM-DD") === "05-23") {
-
-                day.color = "yellow";
-            }
-            return day;
-        };
-        watch(selectedDate, (newVal) => {
-            console.log(newVal);
+            return true;
         });
-        return {
-            selectedDate,
-            calendarConfig: ref(config),
-        };
+        return {};
     },
 });
 </script>
 
 <style>
+@import "./calendar/flex.css";
+.page_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    overflow-y: scroll;
+    background-color: #fff;
+    height: 100%;
+}
 #app {
     font-family: Avenir, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-align: center;
     height: 100%;
+}
+
+.slide-right-enter-active,
+.slide-left-enter-active,
+.slide-right-leave-active,
+.slide-left-leave-active {
+    box-shadow: -20px 0 20px 0px rgba(0, 0, 0, 0.1);
+    will-change: transform;
+    transition: all 0.5s ease-out;
+    position: absolute;
+}
+
+.slide-right-enter-from {
+    opacity: 0;
+    transform: translateX(-50%);
+}
+.slide-right-leave-to {
+    z-index: 100;
+    transform: translateX(102%);
+}
+
+.slide-right-leave-from {
+    box-shadow: -20px 0 20px 0px rgba(0, 0, 0, 0.1);
+}
+.slide-left-enter-from {
+    z-index: 100;
+    transform: translateX(100%);
+    box-shadow: -20px 0 20px 0px rgba(0, 0, 0, 0.1);
+}
+.slide-left-leave-to {
+    opacity: 0.4;
+    transform: translateX(-50%);
 }
 </style>

@@ -4,7 +4,7 @@
             <span class="week_head_text flex_1" v-for="(week, i) in weeks" :key="i">{{ week }}</span>
         </div>
         <div class="calendar_wrap flex_1">
-            <div v-for="(month, i) in calendarList" :key="i">
+            <div v-for="(month, i) in refCalendarList" :key="i">
                 <div class="calendar_month_title">{{ month.year }}年{{ month.month }}月</div>
                 <div class="flex_row flex_wrap">
                     <div class="calendar_month_day flex_none" v-for="(emptyGrid, index) in month.emptyGrids" :key="index"></div>
@@ -13,7 +13,7 @@
                         :class="{ selected: day.selected, disable: !day.selectable }"
                         v-for="(day, index) in month.days"
                         :key="index"
-                        @click="chooseDay(day)"
+                        @click="chooseDayForMode(day)"
                     >
                         <div class="calendar_month_day_index" :style="{ color: getDayColor(day) }">
                             {{ day.day }}
@@ -35,13 +35,12 @@
 </template>
 
 <script lang="ts">
-import { ref } from "@vue/reactivity";
-import { ZTCalendarConfig, ZTCalendarDay } from "./calendar.config";
-import { ZTCalendarCore } from "./calendar.core";
+import { ref, toRef, watch } from "vue";
 import { defineComponent } from "@vue/runtime-core";
-
-import dayjs from "dayjs";
-
+import { ZTCalendarConfig, ZTCalendarDay, ZTCalendarMode } from "./calendar.config";
+import { ZTCalendarCore } from "./calendar.core";
+import useCalendarMutipleMode from "./calendar.mutiple";
+import useCalendarSingleMode from "./calendar.single";
 export default defineComponent({
     name: "Calendar",
     props: {
@@ -49,42 +48,39 @@ export default defineComponent({
             type: ZTCalendarConfig,
             default: () => new ZTCalendarConfig(),
         },
-        selectedDate: String,
+        selectedDates: Array,
     },
-    setup(props, context) {
+    setup(props, { emit }) {
         console.log(props.config);
 
-        let lastSelectedDay = ref();
-        if (props.selectedDate) {
-            let seletecedDay = dayjs(props.selectedDate);
-            lastSelectedDay.value = new ZTCalendarDay({
-                day: seletecedDay.date(),
-                month: seletecedDay.month() + 1,
-                year: seletecedDay.year(),
-                selected: true,
-                selectable: true,
+        const calendar = new ZTCalendarCore(props.config);
+        const selectedDates = toRef(props, "selectedDates");
+
+        let refCalendarList = ref();
+        let chooseDayForMode = (day: ZTCalendarDay) => {
+            return;
+        };
+        if (props.config.mode === ZTCalendarMode.Single) {
+            const { calendarList, chooseDay } = useCalendarSingleMode(calendar, selectedDates, emit);
+            refCalendarList = calendarList;
+            chooseDayForMode = chooseDay;
+        } else if (props.config.mode === ZTCalendarMode.Multiple) {
+            const { calendarList, lastSelectedDays, chooseDay } = useCalendarMutipleMode(calendar, selectedDates, emit);
+            refCalendarList = calendarList;
+            chooseDayForMode = chooseDay;
+
+            watch(selectedDates, () => {
+                lastSelectedDays.value = [];
+                refCalendarList.value = calendar.updateCalendar();
             });
         }
 
-        const calendar = new ZTCalendarCore(props.config);
-        const calendarList = ref(calendar.initCalendar());
-
         return {
-            calendarList,
-            weeks: props.config.weeks,
+            refCalendarList,
+            chooseDayForMode,
+            weeks: ref(["日", "一", "二", "三", "四", "五", "六"]),
             getDayColor: (day: ZTCalendarDay) => {
                 return !day.selectable ? "#999" : day.selected ? "#fff" : day.isRest ? "#ff5555" : day.isWork ? "#333" : day.color;
-            },
-            chooseDay: (day: ZTCalendarDay) => {
-                if (!day.selectable) {
-                    return;
-                }
-                if (lastSelectedDay.value) {
-                    lastSelectedDay.value.selected = false;
-                }
-                day.selected = true;
-                lastSelectedDay.value = day;
-                context.emit("update:selectedDate", day.format);
             },
         };
     },

@@ -7,9 +7,29 @@ function _formatNumber(num: number): string {
     return `${num}`;
 }
 
+export enum ZTCalendarMode {
+    /** 单选 */
+    Single = 0,
+    /** 多选 */
+    Multiple = 1,
+    /** 范围选择，暂未实现 */
+    Range = 2,
+}
+
 export class ZTCalendarConfig {
-    weeks: Array<string>;
+    /**
+     * 日期选择模式
+     * @enum {ZTCalendarMode}
+     * @default Single
+     */
+    mode: ZTCalendarMode;
+    /**
+     * 是否支持农历（包含公农历节假日展示）
+     */
     lunar: boolean;
+    /**
+     * 仅展示节假日相关
+     */
     onlyHoliday: boolean;
     /**
      * 日期可用天数
@@ -19,29 +39,33 @@ export class ZTCalendarConfig {
      * 日期可用起始日期：YYYY-MM-DD
      */
     startDay: string;
-
-    range: boolean;
-
+    /**
+     * 日历day对象hooks，可在此处自定义day展示
+     * @param {ZTCalendarDay} day 日历中的每一个day对象
+     * @returns {ZTCalendarDay} 返回自定义对象，默认直接返回day
+     */
     settingDayCb: (day: ZTCalendarDay) => ZTCalendarDay;
 
     constructor() {
-        this.weeks = ["日", "一", "二", "三", "四", "五", "六"];
+        this.mode = ZTCalendarMode.Single;
         this.canUseDays = -1;
         this.startDay = dayjs(new Date()).format("YYYY-MM-DD");
         this.lunar = false;
         this.onlyHoliday = false;
-        this.range = false;
         this.settingDayCb = (day) => day;
     }
     /**
      * 获取月份长度
-     * @returns number 生成的最大月数
+     * @returns number 生成的最小月数
      */
     getMonthLength() {
         if (this.canUseDays > 0) {
-            return this.canUseDays / 30 + 1;
+            let startDay = dayjs(this.startDay);
+            let startMonthDiff = startDay.daysInMonth() - startDay.date();
+            const needMinMonth = Math.ceil((this.canUseDays - startMonthDiff) / 30) + 1;
+            return needMinMonth;
         }
-        return 1;
+        return 3;
     }
 }
 

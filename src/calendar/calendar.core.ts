@@ -13,9 +13,11 @@ function _formatNumber(num: number): string {
 
 export class ZTCalendarCore {
     config: ZTCalendarConfig;
+    settingDayCb: (day: ZTCalendarDay) => ZTCalendarDay;
 
     constructor(config: ZTCalendarConfig) {
         this.config = config;
+        this.settingDayCb = (day: ZTCalendarDay) => day;
     }
 
     initCalendar() {
@@ -30,7 +32,10 @@ export class ZTCalendarCore {
         return calendarList;
     }
 
-    updateCalendar(config: ZTCalendarConfig) {
+    updateCalendar(config?: ZTCalendarConfig) {
+        if (!config) {
+            return this.initCalendar();
+        }
         this.config = config;
         return this.initCalendar();
     }
@@ -72,10 +77,10 @@ export class ZTCalendarCore {
                 if (this.config.lunar || this.config.onlyHoliday) day.holiday = lunar.festival || lunar.lunarFestival;
             }
             day.color = this.settingDayColor(currentDay);
+
+            day = this.settingDayCb(day);
             day = this.config.settingDayCb(day);
-            if (day.selected) {
-                console.log(day.format);
-            }
+
             days.push(day);
         }
         return days;
