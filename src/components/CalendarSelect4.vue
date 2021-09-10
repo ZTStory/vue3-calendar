@@ -14,6 +14,7 @@ import Calendar from "../calendar/Calendar.vue";
 import { ZTCalendarConfig, ZTCalendarDay } from "../calendar/calendar.config";
 import NavBar from "./NavBar.vue";
 import DayjsUtils from "../calendar/dayjs.util";
+import dayjs from "dayjs";
 
 export default defineComponent({
     components: {
@@ -44,6 +45,12 @@ export default defineComponent({
         const config = new ZTCalendarConfig();
         config.onlyHoliday = true;
         config.settingDayCb = (day: ZTCalendarDay) => {
+            if (dayjs().format("YYYY-MM-DD") === day.format) {
+                day.alias = "今天";
+            }
+            if (DayjsUtils.add(1) === day.format) {
+                day.alias = "明天";
+            }
             if (DayjsUtils.isBetween(day.format, [DayjsUtils.add(5), DayjsUtils.add(10)], "day")) {
                 day.bottomDesc = "可售";
             }

@@ -96,6 +96,7 @@ export class ZTCalendarDay {
         this.selectable = options.selectable;
         this.color = "#333";
         this.bottomDesc = "";
+        this.alias = "";
         this.lunar = "";
         this.holiday = "";
         this.isWork = false;

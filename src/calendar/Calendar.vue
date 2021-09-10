@@ -16,7 +16,7 @@
                         @click="chooseDayForMode(day)"
                     >
                         <div class="calendar_month_day_index" :style="{ color: getDayColor(day) }">
-                            {{ day.day }}
+                            {{ day.alias || day.day }}
                         </div>
                         <div class="calendar_month_day_desc">{{ day.bottomDesc || day.holiday || day.lunar }}&#8203;</div>
                         <div
@@ -80,7 +80,17 @@ export default defineComponent({
             chooseDayForMode,
             weeks: ref(["日", "一", "二", "三", "四", "五", "六"]),
             getDayColor: (day: ZTCalendarDay) => {
-                return !day.selectable ? "#999" : day.selected ? "#fff" : day.isRest ? "#ff5555" : day.isWork ? "#333" : day.color;
+                return !day.selectable
+                    ? "#999"
+                    : day.selected
+                    ? "#fff"
+                    : day.isRest
+                    ? "#ff5555"
+                    : day.isWork
+                    ? "#333"
+                    : day.alias
+                    ? "#ff8400"
+                    : day.color;
             },
         };
     },
